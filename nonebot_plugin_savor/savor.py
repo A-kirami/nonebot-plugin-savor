@@ -41,13 +41,13 @@ async def savor_image(img_url: str) -> List[Confidence]:
         raise NetworkError("无法获取此图像")
 
     image = Image.open(BytesIO(res.content))
-    image.save(imageData := BytesIO(), format="png")
+    image.save(imageData := BytesIO(), format="jpeg")
     img_b64 = base64.b64encode(imageData.getvalue()).decode()
 
     url_push = "https://hf.space/embed/hysts/DeepDanbooru/api/queue/push/"
     data = {
         "fn_index": 0,
-        "data": [f"data:image/png;base64,{img_b64}", 0.5],
+        "data": [f"data:image/jpeg;base64,{img_b64}", 0.5],
         "session_hash": random_code(11),
         "action": "predict",
     }
