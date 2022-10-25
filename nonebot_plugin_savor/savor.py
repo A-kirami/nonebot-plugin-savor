@@ -40,7 +40,7 @@ async def savor_image(img_url: str) -> List[Confidence]:
     if res.is_error:
         raise NetworkError("无法获取此图像")
 
-    image = Image.open(BytesIO(res.content))
+    image = Image.open(BytesIO(res.content)).convert("RGB")
     image.save(imageData := BytesIO(), format="jpeg")
     img_b64 = base64.b64encode(imageData.getvalue()).decode()
 
