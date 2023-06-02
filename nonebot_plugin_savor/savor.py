@@ -15,8 +15,7 @@ import json
 
 def RandomString():
     characters = string.ascii_lowercase + string.digits
-    randomstring = ''.join(random.choices(characters, k=10))
-    return randomstring
+    return ''.join(random.choices(characters, k=10))
 
 class Confidence(TypedDict):
     label: str
