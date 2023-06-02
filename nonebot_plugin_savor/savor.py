@@ -7,6 +7,16 @@ import httpx
 from httpx import NetworkError
 from PIL import Image
 
+import random
+import string
+import websockets
+import json
+
+
+def RandomString():
+    characters = string.ascii_lowercase + string.digits
+    randomstring = ''.join(random.choices(characters, k=10))
+    return randomstring
 
 class Confidence(TypedDict):
     label: str
@@ -22,19 +32,37 @@ async def savor_image(img_url: str) -> List[Confidence]:
     image = Image.open(BytesIO(res.content)).convert("RGB")
     image.save(imageData := BytesIO(), format="jpeg")
     img_b64 = base64.b64encode(imageData.getvalue()).decode()
+    
+    session_hash = RandomString()
+    data = '{"data":["data:image/jpeg;base64,' + img_b64 + '",0.5],"event_data":null,"fn_index":1,"session_hash":"' + session_hash + '"}'
+    try:
+        async with websockets.connect('wss://hysts-deepdanbooru.hf.space/queue/join') as websocket:
+            greeting = await websocket.recv()
+            await websocket.send('{"fn_index":1,"session_hash":"' + session_hash + '"}')
+            greeting = await websocket.recv()
+            greeting = await websocket.recv()
+            await websocket.send(data)
+            greeting = await websocket.recv()
+            greeting = await websocket.recv()
+            if "process_completed" in greeting:
+                return json.loads(greeting)["output"]["data"][0]["confidences"]
+            else:
+                raise ValueError("分析出错")
+    except:
+        raise NetworkError("网络出错")
 
-    url_push = "https://hysts-deepdanbooru.hf.space/api/predict"
-    data = {
-        "fn_index": 0,
-        "data": [f"data:image/jpeg;base64,{img_b64}", 0.5],
-    }
+    # url_push = "https://hysts-deepdanbooru.hf.space/api/predict"
+    # data = {
+    #     "fn_index": 0,
+    #     "data": [f"data:image/jpeg;base64,{img_b64}", 0.5],
+    # }
 
-    async with httpx.AsyncClient() as client:
-        res = await client.post(url_push, json=data, timeout=10)
+    # async with httpx.AsyncClient() as client:
+    #     res = await client.post(url_push, json=data, timeout=10)
 
-    if res.is_error:
-        raise NetworkError(f"网络出错: {res.status_code}")
+    # if res.is_error:
+    #     raise NetworkError(f"网络出错: {res.status_code}")
 
-    data = res.json()
+    # data = res.json()
 
-    return data["data"][0]["confidences"]
+    # return data["data"][0]["confidences"]
