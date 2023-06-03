@@ -8,7 +8,7 @@ from nonebot.typing import T_State
 
 from .savor import savor_image
 
-analysis = on_command("鉴赏图片", aliases={"分析图片", "解析图片"},block=True)
+analysis = on_command("鉴赏图片", aliases={"分析图片", "解析图片"}, block=True)
 
 
 @analysis.handle()
@@ -22,7 +22,6 @@ async def image_analysis(event: MessageEvent, matcher: Matcher):
 async def get_image(state: T_State, imgs: Message = Arg()):
     urls = extract_image_urls(imgs)
     if not urls:
-        #await analysis.reject("没有找到图片, 请重新发送")
         await analysis.finish("没有找到图片, 分析结束")
     state["urls"] = urls
 
